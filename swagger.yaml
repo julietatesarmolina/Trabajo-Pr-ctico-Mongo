@@ -1,0 +1,629 @@
+openapi: 3.0.0
+info:
+  title: API de Red Anti-Social
+  version: "1.0.0"
+  description: Documentación de la API para gestionar usuarios, publicaciones, comentarios, tags e imágenes de la red social.
+servers:
+  - url: "http://localhost:3000"
+    description: Local
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+          example: usuario123
+        email:
+          type: string
+          example: usuario@gmail.com
+        password:
+          type: string
+          example: contraseña123
+    Post:
+      type: object
+      properties:
+        userId:
+          type: integer
+          example: 1
+        description:
+          type: string
+          example: Nueva publicación
+        usuario:
+          $ref: '#/components/schemas/User'
+        comentarios:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+        post_imagenes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Post_Imagenes'
+    Post_Imagenes:
+      type: object
+      properties:
+        postId:
+          type: integer
+          description: Identificador de la publicación a la que pertenece la imagen
+        imageUrl:
+          type: string
+          example: "uploads/imagenUrl-1620123456789.jpg"
+          description: Ruta de la imagen almacenada
+    Comment:
+      type: object
+      properties:
+        userId:
+          type: integer
+        postId:
+          type: integer
+        text:
+          type: string
+        isVisible:
+          type: boolean
+        User:
+          $ref: '#/components/schemas/User'
+        Post:
+          $ref: '#/components/schemas/Post'
+    CommentTag:
+      type: object
+      properties:
+        postId:
+          type: integer
+        tagId:
+          type: integer
+    Tag:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Etiqueta1
+paths:
+  /users:
+    get:
+      summary: Obtener todos los usuarios
+      tags:
+        - Users
+      responses:
+        '200':
+          description: Lista de usuarios
+        '404':
+          description: No se encontraron usuarios
+        '500':
+          description: Error interno del servidor
+    post:
+      summary: Crear un nuevo usuario
+      tags:
+        - Users
+      description: Crea un nuevo usuario en el sistema.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: Usuario creado exitosamente
+        '500':
+          description: Error interno del servidor
+
+  /users/{id}:
+    put:
+      summary: Actualizar usuario por ID
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Usuario actualizado exitosamente
+        '400':
+          description: Solicitud incorrecta
+        '500':
+          description: Error interno del servidor
+    delete:
+      summary: Eliminar un usuario por ID
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Usuario eliminado exitosamente
+        '500':
+          description: Error interno del servidor
+  /posts:
+    get:
+      summary: Obtener todas las publicaciones
+      tags:
+        - Posts
+      parameters:
+        - name: userId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filtrar posts por ID de usuario
+      responses:
+        '200':
+          description: Lista de publicaciones
+        '204':
+          description: No hay contenido
+        '500':
+          description: Error interno del servidor
+    post:
+      summary: Crear una nueva publicación (con imágenes opcionales)
+      tags:
+        - Posts
+      description: Crea una nueva publicación en el sistema.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                  example: 1
+                description:
+                  type: string
+                  example: Este es un nuevo post
+                imagenes:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+              required:
+                - userId
+                - description
+      responses:
+        '201':
+          description: Publicación creada exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  userId:
+                    type: integer
+                    example: 1
+                  description:
+                    type: string
+                    example: "Este es un nuevo post"
+                  imagenes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post_Imagenes'
+        '400':
+          description: Los campos "userId" y "description" son obligatorios
+        '500':
+          description: Error al crear la publicación
+  /posts/{id}:
+    put:
+      summary: Actualizar una publicación por ID
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Post'
+      responses:
+        '201':
+          description: Publicación actualizada exitosamente
+        '404':
+          description: Publicación no encontrada
+        '500':
+          description: Error interno del servidor
+    delete:
+      summary: Eliminar una publicación por ID
+      description: Elimina una publicación y todos sus recursos asociados (comentarios, etiquetas, imágenes)
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Publicación eliminada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Publicación eliminada exitosamente"
+        '404':
+          description: Publicación no encontrada
+        '500':
+          description: Error interno del servidor
+  /posts/{id}/imagenes/{imageId}:
+    put:
+      summary: Actualizar una publicación con imágenes
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: Contenido actualizado del post
+                imagenes:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Nuevas imagenes para agregar al post
+      responses:
+        '200':
+          description: Publicación actualizada exitosamente
+        '404':
+          description: Publicación no encontrada.
+        '500':
+          description: Error interno del servidor.
+    delete:
+      summary: Eliminar una imagen específica de una publicación
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Imagen eliminada exitosamente
+        '404':
+          description: Imagen no encontrada
+        '500':
+          description: Error al eliminar la imagen
+  /comments:
+    get:
+      summary: Obtener todos los comentarios
+      tags:
+        - Comments
+      responses:
+        '200':
+          description: Lista de comentarios
+        '404':
+          description: No se encontraron comentarios.
+        '500':
+          description: Error interno del servidor
+    post:
+      summary: Crear un nuevo comentario
+      tags:
+        - Comments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comment'
+      responses:
+        '201':
+          description: Comentario creado exitosamente
+        '400':
+          description: Error al crear el comentario
+  /comments/{id}:
+    put:
+      summary: Actualizar un comentario
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comment'
+      responses:
+        '200':
+          description: Comentario actualizado exitosamente
+        '400':
+          description: Solicitud incorrecta
+        '404':
+          description: Comentario no encontrado
+        '500':
+          description: Error interno del servidor
+    delete:
+      summary: Eliminar un comentario por ID
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Comentario eliminado exitosamente
+        '404':
+          description: Comentario no encontrado
+        '500':
+          description: Error interno del servidor
+  /tags:
+    get:
+      summary: Obtener todos los tags
+      tags:
+        - Tags
+      responses:
+        '200':
+          description: Lista de etiquetas
+        '404':
+          description: No se encontraron etiquetas
+        '500':
+          description: Error interno del servidor
+    post:
+      summary: Crear un nuevo tag
+      tags:
+        - Tags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Tag'
+      responses:
+        '201':
+          description: Etiqueta creada exitosamente
+        '400':
+          description: Error al crear la etiqueta
+  /tags/{id}:
+    put:
+      summary: Actualizar un tag por ID
+      tags:
+        - Tags
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del tag a actualizar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Tag'
+      responses:
+        '200':
+          description: Etiqueta actualizada exitosamente
+        '400':
+          description: Solicitud incorrecta
+        '404':
+          description: Etiqueta no encontrada
+        '500':
+          description: Error interno del servidor
+    delete:
+      summary: Eliminar un tag por ID
+      tags:
+        - Tags
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del tag a eliminar
+      responses:
+        '204':
+          description: Etiqueta eliminada exitosamente
+        '404':
+          description: Etiqueta no encontrada
+        '500':
+          description: Error interno del servidor
+  /comment-tags/post/{postId}:
+    get:
+      summary: Obtener todos los tags asociados a un post específico.
+      tags:
+        - CommentTags
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del post del que se quieren obtener los tags.
+      responses:
+        '200':
+          description: Lista de tags asociadas al post.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+        '204':
+          description: No se encontraron tags para el post
+        '404':
+          description: No se encontró el post
+        '500':
+          description: Error interno del servidor
+  /comment-tags:
+    post:
+      summary: Asignar un tag a un post.
+      tags:
+        - CommentTags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentTag'
+      responses:
+        '201':
+          description: Tag asignado correctamente
+          description: Error interno del servidor
+    delete:
+      summary: Eliminar la asociación de un tag a un post.
+      tags:
+        - CommentTags
+      responses:
+        '204':
+          description: Asociación eliminada correctamente
+        '404':
+          description: Post o tag no encontrado
+        '500':
+          description: Error interno del servidor
+  /archives:
+    get:
+      summary: Obtener todos los archivos de imágenes de posts
+      tags:
+        - Post_Imagenes
+      responses:
+        '200':
+          description: Lista de archivos de imágenes
+        '404':
+          description: No se encontraron archivos
+        '500':
+          description: Error interno del servidor
+    post:
+      summary: Subir un nuevo archivo de imagen de post
+      tags:
+        - Post_Imagenes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Post_Imagenes'
+      responses:
+        '200':
+          description: Archivos creados exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  archivosCreados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post_Imagenes'
+        '500':
+          description: Error al eliminar los archivos
+  /archives/{id}:
+    put:
+      summary: Actualizar un archivo de imagen de post por ID
+      tags:
+        - Post_Imagenes
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del archivo de imagen a actualizar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Post_Imagenes'
+      responses:
+        '200':
+          description: Archivo actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  imagen:
+                    $ref: '#/components/schemas/Post_Imagenes'
+        '500':
+          description: Error al subir los archivos
+    delete:
+      summary: Eliminar un archivo de imagen de post por ID
+      tags:
+        - Post_Imagenes
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del archivo de imagen a eliminar
+      responses:
+        '201':
+          description: Archivo eliminado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  imagen:
+                    $ref: '#/components/schemas/Post_Imagenes'
+        '500':
+          description: Error al eliminar el archivo
