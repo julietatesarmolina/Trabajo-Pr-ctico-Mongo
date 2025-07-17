@@ -18,18 +18,21 @@ const postRouter = require('./routes/postRoutes')
 const post_ImagesRouter = require('./routes/post_ImagesRoutes')
 const tagRouter = require('./routes/tagRoutes')
 const commentRouter = require('./routes/commentRoutes')
+const commentTagsRouter = require('./routes/commentTagsRoutes')
+const followerRouter = require('./routes/followerRoutes')
 
 //rutas
 app.use('/usuarios', userRouter)
 app.use('/posts', postRouter)
-app.use('/images', post_ImagesRouter)
+app.use('/post_Images', post_ImagesRouter)
 app.use('/tags', tagRouter)
 app.use('/comments', commentRouter)
+app.use('/comment-tags', commentTagsRouter)
+app.use('/follow', followerRouter)
 
 //Configuracion del Swagger
 const docSwagger = YAML.load(path.join(__dirname, '..', 'swagger.yaml'))
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(docSwagger))
-
 
 //Conexion a DB
 connectDB()

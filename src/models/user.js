@@ -16,7 +16,15 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         match: [/^\S+@\S+\.\S+$/, 'Email inválido'],
-    }
+    },
+    followers:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User' 
+    }],
+    following:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User' 
+    }],
 }) 
 
 

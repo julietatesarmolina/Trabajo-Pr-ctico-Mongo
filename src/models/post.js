@@ -13,7 +13,16 @@ const postSchema = new mongoose.Schema({
     images: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Post_Images'
-    }]
+    }],
+    comment: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Comment'
+    }],
+    tags: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tag'
+    }],
+    createdAt: { type: Date, default: Date.now }
 })
 
 module.exports = mongoose.model('Post', postSchema)

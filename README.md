@@ -1,86 +1,89 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/NImNxoFn)
-# UnaHur - Red Anti-Social
+# Anti-Social API
 
-Se solicita el modelado y desarrollo de un sistema backend para una red social llamada **“UnaHur Anti-Social Net”**, inspirada en plataformas populares que permiten a los usuarios realizar publicaciones y recibir comentarios sobre las mismas.
+Es un sistema backend para una red social llamada “UnaHur Anti-Social Net”, inspirada en plataformas populares que permiten a los usuarios realizar publicaciones y recibir comentarios sobre las mismas.
 
-![Imagen](./assets/ANTI-SOCIALNET.jpeg)
+# Instalación y ejecución
 
-# Contexto del Proyecto
+1. **Clonar el repositorio**
+   - Debe ir al enlace y **clonar el repositorio en su computadora**.
 
-En una primera reunión con los sponsors del proyecto, se definieron los siguientes requerimientos para el desarrollo de un **MVP (Producto Mínimo Viable)**:
+Luego de clonar el repositorio en su computadora debe abrirlo en visual studio e instalar todas las dependencias (npm i). También, deberá abrir `Docker` y ejecutar en la terminal del proyecto `docker-compose up -d`. Por último, correr el comando `npm run dev`.
 
-- El sistema debe permitir que un usuario registrado realice una publicación (post), incluyendo **obligatoriamente una descripción**. De forma opcional, se podrán asociar **una o más imágenes** a dicha publicación.
+Después de eso, podra realizar las consultas en `postman` mediante la url `localhost:3000`.
 
-- Las publicaciones pueden recibir **comentarios** por parte de otros usuarios.
+Para poder visualizar la DB, se podrá utilizar MongoDB Compass, pegando la URI _mongodb://admin:admin123@localhost:27017/miDB?authSource=admin_
 
-- Las publicaciones pueden estar asociadas a **etiquetas (tags)**. Una misma etiqueta puede estar vinculada a múltiples publicaciones.
+# Documentación
 
-- Es importante que los **comentarios más antiguos que X meses** (valor configurable mediante variables de entorno, por ejemplo, 6 meses) **no se muestren** en la visualización de los posteos.
+La documentación de la `api` fue generada utilizando `Swagger` en formato `YAML` donde se encuentran todos los `endpoints` definidos.
 
-####
+# API
 
-# Entidades y Reglas de Negocio
+#### /users
 
-Los sponsors definieron los siguientes nombres y descripciones para las entidades:
+- `get`: Obtener todos los `usuarios` del `sistema`.
+- `post`: Crear un `usuario` al `sistema`.
+- `put` : Modificar un `usuario` en el `sistema` por `id`.
+- `delete` : Eliminar un `usuario` del `sistema` por `id`.
 
-- **User**: Representa a los usuarios registrados en el sistema. El campo `nickName` debe ser **único** y funcionará como identificador principal del usuario.
+#### /posts
 
-- **Post**: Publicación realizada por un usuario en una fecha determinada que contiene el texto que desea publicar. Puede tener **cero o más imágenes** asociadas. Debe contemplarse la posibilidad de **agregar o eliminar imágenes** posteriormente.
+- `get`: Obtener todos los `posts` de un `usuario`.
+- `post`: Crear un `post` en el `usuario`.
+- `put` : Modificar un `post` del `usuario` por `id`.
+- `delete` : Eliminar un `post` del `usuario` por `id`.
 
-- **Post_Images**: Entidad que registra las imágenes asociadas a los posts. Para el MVP, solo se requiere almacenar la **URL de la imagen alojada**.
+#### /posts/:id/images/:imageId
 
-- **Comment**: Comentario que un usuario puede realizar sobre una publicación. Incluye la fecha en la que fue realizado y una indicación de si está **visible o no**, dependiendo de la configuración (X meses).
+- `put` : Modifica la `url` de una imagen en un `post`
+- `delete`: Elimina la `url` de una imagen en un `post`
 
-- **Tag**: Etiqueta que puede ser asignada a un post. Una etiqueta puede estar asociada a **muchos posts**, y un post puede tener **múltiples etiquetas**.
+#### /comments
 
-# Requerimientos Técnicos
+- `get`: Obtener todos los `comentarios` de un `post`.
+- `post`: Crear un `comentario` en el `post`.
+- `put` : Modificar un `comentario` en el `post` por `id`.
+- `delete` : Eliminar un `comentario` del `post` por `id`.
 
-1. **Modelado de Datos**
+#### /tags
 
-   - Diseñar el modelo documental que represtente todas las entidades definidas por los sponsor del proyecto. Queda a su criterio si usan relaciones embebidas o relaciones referenciadas a otros documentos.
+- `get`: Obtener todos las `tags` del `post`.
+- `post`: Crear un `tags` en el `post`.
+- `put` : Modificar un `tags` en el `post` por `id`.
+- `delete` : Eliminar un `tags` del `post` por `id`.
 
-### Ejemplo referenciadas
+#### /comment-tags
 
-![referenciadas](./assets/Referenciada.png)
+- `get` : Obtener todos los `tags` asociados a un `post` especifico por `id`.
+- `post`: Asignar un tag a un `post`.
+- `delete` : Eliminar la asociacion de un `tag` a un `post`
 
-2. **Desarrollo del Backend**
+#### /post_Images
 
-   - Crear los **endpoints CRUD** necesarios para cada entidad.
+- `get`: Obtener todas las `imágenes` de imagenes de `post`.
+- `post`: Subir una nueva `imagen` de imagen de `post`.
 
-   - Implementar las rutas necesarias para gestionar las relaciones entre entidades (por ejemplo: asociar imágenes a un post, etiquetas a una publicación, etc.).
+#### /post_Images/{id}
 
-   - Desarrollar las validaciones necesarias para asegurar la integridad de los datos (schemas, validaciones de integridad referencial).
+- `put` : Actualizar una `imagen` de imagen de `post` por `id`.
+- `delete` : Eliminar una `imagen` de imagen de `post` por `id`.
 
-   - Desarrollar las funciones controladoras con una única responsabiliad evitando realizar comprobaciones innecesarias en esta parte del código.
+#### /followers
 
-3. **Configuración y Portabilidad**
+- `get`: Obtener todos los `follows` del sistema.
 
-   - El sistema debe poder cambiar de **base de datos** de forma transparente, utilizando configuración e instalación de dependencias adecuadas.
+#### /followers/:userId/obtenerSeguidores
 
-   - El sistema debe permitir configurar el **puerto de ejecución y variables de entorno** fácilmente.
+- `get`: Obtener los `seguidores` de un `usuario` específico.
 
-4. **Documentación**
+#### /followers/:userId/obtenerSeguidos
 
-   - Generar la documentación de la API utilizando **Swagger (formato YAML)**, incluyendo todos los endpoints definidos.
+- `get`: Obtener los `usuarios seguidos` de un `usuario` específico.
 
-5. **Colecciones de Prueba**
+#### /followers/:userId/follow
 
-   - Entregar las colecciones necesarias para realizar pruebas (por ejemplo, colecciones de Postman o archivos JSON de ejemplo).
+- `post`: Crear el `seguimiento` de un `usuario`.
 
-###
+#### /followers/:userId/unfollow/:unfollowedUserId
 
-# Recomendaciones y ayudas
-
-Les entregamos este link que apunta a un front-end ya desarrollado para que puedan investigarlo y puedan crear el back-end que se ajuste lo maximo posiblel funcionamiento del front.
-
-[https://unahur.vmdigitai.com/redes-front/users](https://unahur.vmdigitai.com/redes-front/users)
-
-Por otro lado les dejamos la documentació de los endpoint para que también la puedan revisar y armar siguiendo este link
-
-[https://unahur.vmdigitai.com/swagger/](https://unahur.vmdigitai.com/swagger/)
-
-# Bonus
-
-- Hace el upload de las imganes que se asocian a un POST que lo guarden en una carpeta de imagenes dentro del servidor web.
-- ¿Cómo modelarías que un usuario pueda "seguir" a otros usuarios, y a su vez ser seguido por muchos? Followers
-- Con la información de los post no varia muy seguido que estrategias podrian utilizar la que la información no sea constantemente consultada desde la base de datos.
+- `delete`: Dejar de `seguir` a un `usuario`.

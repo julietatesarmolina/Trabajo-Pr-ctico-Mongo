@@ -1,4 +1,5 @@
 const Post_Images  = require('../models/Post_Images')
+const Post = require('../models/post')
 
 const obtenerImagenes = async (req, res) => {
     try {
@@ -20,6 +21,11 @@ const crearImagenes = async (req, res) => {
             imagenesACrear.map(async (imagen) => {
                 const nueva = new Post_Images(imagen)
                 await nueva.save()
+                const post = await Post.findById(nueva.postId)
+                if(post){
+                    post.images.push(nueva._id)
+                    await post.save()
+                }
                 return nueva
             })
         )

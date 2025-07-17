@@ -1,0 +1,129 @@
+{
+	"info": {
+		"_postman_id": "e3c57a11-3ef8-43bd-9313-f32229a379fe",
+		"name": "localhost:3000/follow",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37189587"
+	},
+	"item": [
+		{
+			"name": "Get followers",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/follow/6855bc4fe7f88748c59b315a/obtenerSeguidores",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"follow",
+						"6855bc4fe7f88748c59b315a",
+						"obtenerSeguidores"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get followed",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/follow/6855bc48e7f88748c59b3158/obtenerSeguidos",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"follow",
+						"6855bc48e7f88748c59b3158",
+						"obtenerSeguidos"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get data",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:3000/follow",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"follow"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post data",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"followedUserId\": \"6855bc4fe7f88748c59b315a\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/follow/6855bc48e7f88748c59b3158/follow",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"follow",
+						"6855bc48e7f88748c59b3158",
+						"follow"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete data",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:3000/follow/6855bc48e7f88748c59b3158/unfollow/6855bc4fe7f88748c59b315a",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"follow",
+						"6855bc48e7f88748c59b3158",
+						"unfollow",
+						"6855bc4fe7f88748c59b315a"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

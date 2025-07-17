@@ -1,15 +1,15 @@
 const { Router } = require('express')
 const router = Router()
 const userController = require('../controllers/userController')
-const userMiddleware = require('../middlewares/userMiddleware')
+const User = require('../models/user')
+const genericMiddleware = require('../middlewares/index')
 
 
 //rutas
 router.get('/', userController.obtenerUsuarios)
 router.post('/' , userController.crearUsuario)
-router.put('/:id', userMiddleware.existeUsuario, userController.actualizarUsuario)
-router.delete('/:id' , userMiddleware.existeUsuario, userController.eliminarUsuario)
-
+router.put('/:id', genericMiddleware.existeModelById(User), userController.actualizarUsuario)
+router.delete('/:id' , genericMiddleware.existeModelById(User), userController.eliminarUsuario)
 
 
 module.exports = router

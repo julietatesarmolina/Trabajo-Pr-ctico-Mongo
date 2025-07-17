@@ -16,7 +16,8 @@ const commentSchema = new mongoose.Schema({
         required: [true, 'El texto es obligatorio'],
         minlength: [5, 'El texto debe tener como mínimo 5 caracteres'],
         maxlength: [250, 'El texto como máximo debe tener 250 caracteres']
-    }
+    },
+    createdAt: { type: Date, default: Date.now }
 })
 
 

@@ -19,7 +19,7 @@ components:
     User:
       type: object
       properties:
-        username:
+        nickName:
           type: string
           example: usuario123
         email:
@@ -28,11 +28,25 @@ components:
         password:
           type: string
           example: contraseña123
+        followers:
+          type: array
+          items:
+            type: string
+            example: 685986f2428447012523778a 
+        following:
+          type: array
+          items:
+            type: string
+            example: 684ede6fdc3ba1c9e6b6a3fc 
+      required:
+        - nickName
+        - email
+        - password
     Post:
       type: object
       properties:
         userId:
-          type: integer
+          type: string
           example: 1
         description:
           type: string
@@ -43,15 +57,22 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Comment'
-        post_imagenes:
+        createdAt:
+          type: string
+          format: date-time
+        tags:
           type: array
           items:
-            $ref: '#/components/schemas/Post_Imagenes'
-    Post_Imagenes:
+            $ref: '#/components/schemas/Tag'
+        Post_Images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Post_Images'
+    Post_Images:
       type: object
       properties:
         postId:
-          type: integer
+          type: string
           description: Identificador de la publicación a la que pertenece la imagen
         imageUrl:
           type: string
@@ -61,11 +82,14 @@ components:
       type: object
       properties:
         userId:
-          type: integer
+          type: string
         postId:
-          type: integer
+          type: string
         text:
           type: string
+        createdAt:
+          type: string
+          format: date-time
         isVisible:
           type: boolean
         User:
@@ -76,17 +100,29 @@ components:
       type: object
       properties:
         postId:
-          type: integer
+          type: string
         tagId:
-          type: integer
+          type: string
     Tag:
       type: object
       properties:
         name:
           type: string
           example: Etiqueta1
+    Follower:
+     type: object
+     properties:
+       follower:
+         type: string
+         description: Id del usuario seguidor.
+       followed:
+         type: string
+         description: Id del usuario que es seguido.
+     required:
+       - follower
+       - followed
 paths:
-  /users:
+  /usuarios:
     get:
       summary: Obtener todos los usuarios
       tags:
@@ -115,7 +151,7 @@ paths:
         '500':
           description: Error interno del servidor
 
-  /users/{id}:
+  /usuarios/{id}:
     put:
       summary: Actualizar usuario por ID
       tags:
@@ -125,7 +161,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         required: true
         content:
@@ -148,7 +184,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         '204':
           description: Usuario eliminado exitosamente
@@ -164,7 +200,7 @@ paths:
           in: query
           required: false
           schema:
-            type: integer
+            type: string
           description: Filtrar posts por ID de usuario
       responses:
         '200':
@@ -181,21 +217,28 @@ paths:
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
               type: object
               properties:
                 userId:
-                  type: integer
-                  example: 1
+                  type: string
+                  example: 6851bfbc4ed6e562977446f9
                 description:
                   type: string
                   example: Este es un nuevo post
                 imagenes:
                   type: array
                   items:
-                    type: string
+                    type: object
+                    properties:
+                      imageUrl:
+                        type: string
+                        example: imageUrl-1620123456789.jpg
                     format: binary
+                createdAt:
+                  type: string
+                  format: date
               required:
                 - userId
                 - description
@@ -205,28 +248,30 @@ paths:
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/Post'
                 type: object
                 properties:
                   id:
-                    type: integer
-                    example: 1
+                    type: string
                   userId:
-                    type: integer
-                    example: 1
+                    type: string
                   description:
                     type: string
                     example: "Este es un nuevo post"
                   imagenes:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Post_Imagenes'
+                      $ref: '#/components/schemas/Post_Images'
+                  createdAt:
+                    type: string
+              
         '400':
           description: Los campos "userId" y "description" son obligatorios
         '500':
           description: Error al crear la publicación
   /posts/{id}:
     put:
-      summary: Actualizar una publicación por ID
+      summary: Actualizar una publicación por ID 
       tags:
         - Posts
       parameters:
@@ -234,15 +279,25 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string 
       requestBody:
         required: true
         content:
-          application/json:
+          application/json: 
             schema:
-              $ref: '#/components/schemas/Post'
+              type: object
+              properties:
+                description:
+                  type: string
+                images: 
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      imageUrl:
+                        type: string
       responses:
-        '201':
+        '200':
           description: Publicación actualizada exitosamente
         '404':
           description: Publicación no encontrada
@@ -258,7 +313,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         '200':
           description: Publicación eliminada exitosamente
@@ -284,12 +339,12 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
         - name: imageId
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         required: true
         content:
@@ -322,12 +377,12 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
         - name: imageId
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         '200':
           description: Imagen eliminada exitosamente
@@ -356,7 +411,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Comment'
+              type: object
+              properties:
+                userId:
+                  type: string
+                  example: 6851bfbc4ed6e562977446f9
+                postId:
+                  type: string
+                  example: 684ede6fdc3ba1c9e6b6a3fc
+                text:
+                  type: string
+                  example: Este es un comentario
+                createdAt:
+                  type: string
+                  format: date-time
+              required:
+                - userId
+                - postId
+                - text
       responses:
         '201':
           description: Comentario creado exitosamente
@@ -372,13 +444,18 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Comment'
+              type: object
+              properties:
+                text:
+                  type: string
+              required:
+                - text
       responses:
         '200':
           description: Comentario actualizado exitosamente
@@ -397,7 +474,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         '204':
           description: Comentario eliminado exitosamente
@@ -426,7 +503,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Tag'
+              type: object
+              properties:
+                name:
+                  type: string
       responses:
         '201':
           description: Etiqueta creada exitosamente
@@ -442,7 +522,7 @@ paths:
           name: id
           required: true
           schema:
-            type: integer
+            type: string
           description: ID del tag a actualizar
       requestBody:
         required: true
@@ -468,16 +548,16 @@ paths:
           name: id
           required: true
           schema:
-            type: integer
+            type: string
           description: ID del tag a eliminar
       responses:
-        '204':
+        '201':
           description: Etiqueta eliminada exitosamente
         '404':
           description: Etiqueta no encontrada
         '500':
           description: Error interno del servidor
-  /comment-tags/post/{postId}:
+  /comment-tags/posts/{postId}:
     get:
       summary: Obtener todos los tags asociados a un post específico.
       tags:
@@ -487,7 +567,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
           description: ID del post del que se quieren obtener los tags.
       responses:
         '200':
@@ -523,6 +603,12 @@ paths:
       summary: Eliminar la asociación de un tag a un post.
       tags:
         - CommentTags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentTag'  
       responses:
         '204':
           description: Asociación eliminada correctamente
@@ -530,11 +616,11 @@ paths:
           description: Post o tag no encontrado
         '500':
           description: Error interno del servidor
-  /archives:
+  /post_Images:
     get:
       summary: Obtener todos los archivos de imágenes de posts
       tags:
-        - Post_Imagenes
+        - Post_Images
       responses:
         '200':
           description: Lista de archivos de imágenes
@@ -545,7 +631,7 @@ paths:
     post:
       summary: Subir un nuevo archivo de imagen de post
       tags:
-        - Post_Imagenes
+        - Post_Images
       requestBody:
         required: true
         content:
@@ -553,7 +639,7 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/Post_Imagenes'
+                $ref: '#/components/schemas/Post_Images'
       responses:
         '200':
           description: Archivos creados exitosamente
@@ -567,27 +653,27 @@ paths:
                   archivosCreados:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Post_Imagenes'
+                      $ref: '#/components/schemas/Post_Images'
         '500':
           description: Error al eliminar los archivos
-  /archives/{id}:
+  /post_Images/{id}:
     put:
       summary: Actualizar un archivo de imagen de post por ID
       tags:
-        - Post_Imagenes
+        - Post_Images
       parameters:
         - in: path
           name: id
           required: true
           schema:
-            type: integer
+            type: string
           description: ID del archivo de imagen a actualizar
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Post_Imagenes'
+              $ref: '#/components/schemas/Post_Images'
       responses:
         '200':
           description: Archivo actualizado
@@ -599,19 +685,19 @@ paths:
                   message:
                     type: string
                   imagen:
-                    $ref: '#/components/schemas/Post_Imagenes'
+                    $ref: '#/components/schemas/Post_Images'
         '500':
           description: Error al subir los archivos
     delete:
       summary: Eliminar un archivo de imagen de post por ID
       tags:
-        - Post_Imagenes
+        - Post_Images
       parameters:
         - in: path
           name: id
           required: true
           schema:
-            type: integer
+            type: string
           description: ID del archivo de imagen a eliminar
       responses:
         '201':
@@ -624,6 +710,114 @@ paths:
                   message:
                     type: string
                   imagen:
-                    $ref: '#/components/schemas/Post_Imagenes'
+                    $ref: '#/components/schemas/Post_Images'
         '500':
           description: Error al eliminar el archivo
+  /follow:
+    get:
+      summary: Obtener todos los seguidores
+      tags:
+        - Follower
+      responses:
+        '200':
+          description: Lista de followers
+        '500':
+          description: Error interno del servidor
+  /follow/{userId}/obtenerSeguidores: 
+    get:
+      summary: Obtener los seguidores de un usuario por ID
+      tags:
+        - Follower
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string 
+          description: ID del usuario a obtener seguidores
+      responses:
+        '200':
+          description: Lista de seguidores del usuario
+        '500':
+          description: Error interno del servidor
+  /follow/{userId}/obtenerSeguidos:
+    get:
+      summary: Obtener los seguidos de un usuario por ID
+      tags:
+        - Follower
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: 
+            type: string
+          description: ID del usuario a obtener seguidos
+      responses:
+        '200':
+          description: Lista de seguidos del usuario
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Follower'
+        '500':
+          description: Error interno del servidor
+  /follow/{userId}/follow:
+    post:
+      summary: Asignar un seguidor a un usuario por ID
+      tags:
+        - Follower
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 60d5ec49f8c6a7001c8a1234 
+          description: ID del usuario que va a seguir a otro usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                followedUserId:
+                  type: string
+                  example: 60d5ec49f8c6a7061c8a1421
+              required:
+                - followedUserId
+      responses:
+        '201':
+          description: Usuario seguido correctamente
+        '400':
+          description: Ya sigues a este usuario
+        '500':
+          description: Error interno del servidor
+  /follow/{userId}/unfollow/{unfollowedUserId}:
+    delete:
+      summary: Dejar de seguir un usuario por ID
+      tags:
+        - Follower
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: unfollowedUserId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '404':
+          description: No sigues a este usuario
+        '200':
+          description: Usuario dejado de seguir correctamente
+        '500':
+          description: Error interno del servidor
+
+        
+          
